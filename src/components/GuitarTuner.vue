@@ -325,7 +325,7 @@ onUnmounted(() => {
           <button
             v-for="string in currentStrings"
             :key="string.note"
-            class="p-3 border-2 rounded-lg transition-all"
+            class="p-3 border-2 rounded-lg cursor-pointer transition-all hover:shadow-lg hover:scale-105"
             :style="detectedNote === string.note
               ? { backgroundColor: 'var(--color-accent)', borderColor: 'var(--color-accent)', color: 'var(--color-accent-foreground)' }
               : { backgroundColor: 'var(--color-muted)', borderColor: 'transparent' }"
