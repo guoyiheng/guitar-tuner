@@ -1,6 +1,10 @@
+<script setup>
+import TheHeader from './components/TheHeader.vue'
+</script>
+
 <template>
-  <main font-sans p="x-4 y-10" text="dark:gray-200">
+  <div font-sans text="dark:gray-200" class="flex flex-col min-h-screen" style="background-color: var(--color-background); color: var(--color-foreground)">
+    <TheHeader />
     <RouterView />
-    <TheFooter />
-  </main>
+  </div>
 </template>

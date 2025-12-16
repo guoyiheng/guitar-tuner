@@ -240,185 +240,172 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col min-h-screen" style="background-color: var(--color-background); color: var(--color-foreground)">
-    <!-- Header -->
-    <header class="px-6 py-4" style="border-bottom: 1px solid var(--color-border)">
-      <div class="mx-auto flex max-w-4xl items-center justify-between">
-        <div class="flex gap-3 items-center">
-          <svg class="h-8 w-8" style="color: var(--color-primary-foreground)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-          </svg>
-          <h1 class="text-xl font-semibold">
-            吉他调音器
-          </h1>
+  <!-- Main Content -->
+  <main class="p-6 flex flex-1 items-center justify-center">
+    <div class="max-w-2xl w-full">
+      <!-- Tuning Mode Selector -->
+      <div class="mb-6">
+        <div class="mb-3 flex items-center justify-between">
+          <label class="text-sm font-medium" style="color: var(--color-muted-foreground)">调音模式</label>
+          <button
+            class="p-2 rounded-lg transition-colors hover:opacity-80"
+            style="background-color: var(--color-muted)"
+            title="设置"
+            @click="showSettings = !showSettings"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
         </div>
-        <button
-          class="p-2 rounded-lg transition-colors hover:opacity-80"
-          style="background-color: var(--color-muted)"
-          @click="showSettings = !showSettings"
-        >
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </button>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="mode in tuningModes"
+            :key="mode.id"
+            class="text-sm font-medium px-4 py-2 rounded-lg transition-all"
+            :style="selectedMode === mode.id
+              ? { backgroundColor: 'var(--color-primary-foreground)', color: 'var(--color-primary)' }
+              : { backgroundColor: 'var(--color-card)', color: 'var(--color-card-foreground)' }"
+            @click="selectedMode = mode.id"
+          >
+            {{ mode.name }}
+          </button>
+        </div>
       </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="p-6 flex flex-1 items-center justify-center">
-      <div class="max-w-2xl w-full">
-        <!-- Tuning Mode Selector -->
-        <div class="mb-8">
-          <label class="text-sm font-medium mb-3 block" style="color: var(--color-muted-foreground)">调音模式</label>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="mode in tuningModes"
-              :key="mode.id"
-              class="text-sm font-medium px-4 py-2 rounded-lg transition-all"
-              :style="selectedMode === mode.id
-                ? { backgroundColor: 'var(--color-primary-foreground)', color: 'var(--color-primary)' }
-                : { backgroundColor: 'var(--color-card)', color: 'var(--color-card-foreground)' }"
-              @click="selectedMode = mode.id"
-            >
-              {{ mode.name }}
-            </button>
+      <!-- Tuner Display -->
+      <div class="mb-6 p-6 rounded-xl" style="background-color: var(--color-card); border: 1px solid var(--color-border)">
+        <!-- Current Note Display -->
+        <div class="mb-6 text-center">
+          <div class="text-6xl font-bold mb-2" :class="noteColor">
+            {{ detectedNote || '—' }}
+          </div>
+          <div class="text-xl" style="color: var(--color-muted-foreground)">
+            {{ frequency ? `${frequency.toFixed(1)} Hz` : '等待输入...' }}
           </div>
         </div>
 
-        <!-- Tuner Display -->
-        <div class="mb-6 p-8 rounded-2xl" style="background-color: var(--color-card); border: 1px solid var(--color-border)">
-          <!-- Current Note Display -->
-          <div class="mb-8 text-center">
-            <div class="text-6xl font-bold mb-2" :class="noteColor">
-              {{ detectedNote || '—' }}
-            </div>
-            <div class="text-2xl" style="color: var(--color-muted-foreground)">
-              {{ frequency ? `${frequency.toFixed(1)} Hz` : '等待输入...' }}
-            </div>
+        <!-- Tuning Indicator -->
+        <div class="mb-6">
+          <div class="rounded-full h-3 relative overflow-hidden" style="background-color: var(--color-muted)">
+            <div
+              class="opacity-20 h-full w-1 left-1/2 top-0 absolute -translate-x-1/2"
+              style="background-color: var(--color-foreground)"
+            />
+            <div
+              v-if="cents !== null"
+              class="rounded-full h-full w-2 transition-all duration-100 top-0 absolute"
+              :class="centIndicatorColor"
+              :style="{ left: `calc(50% + ${cents}%)`, transform: 'translateX(-50%)' }"
+            />
           </div>
-
-          <!-- Tuning Indicator -->
-          <div class="mb-8">
-            <div class="rounded-full h-3 relative overflow-hidden" style="background-color: var(--color-muted)">
-              <div
-                class="opacity-20 h-full w-1 left-1/2 top-0 absolute -translate-x-1/2"
-                style="background-color: var(--color-foreground)"
-              />
-              <div
-                v-if="cents !== null"
-                class="rounded-full h-full w-2 transition-all duration-100 top-0 absolute"
-                :class="centIndicatorColor"
-                :style="{ left: `calc(50% + ${cents}%)`, transform: 'translateX(-50%)' }"
-              />
-            </div>
-            <div class="text-xs mt-2 flex justify-between" style="color: var(--color-muted-foreground)">
-              <span>偏低</span>
-              <span>准确</span>
-              <span>偏高</span>
-            </div>
-          </div>
-
-          <!-- Cents Display -->
-          <div class="text-center">
-            <div class="text-3xl font-semibold" :class="centsColor">
-              {{ cents !== null ? (cents > 0 ? '+' : '') + cents.toFixed(0) : '—' }}
-              <span class="text-lg ml-1" style="color: var(--color-muted-foreground)">cents</span>
-            </div>
+          <div class="text-xs mt-2 flex justify-between" style="color: var(--color-muted-foreground)">
+            <span>偏低</span>
+            <span>准确</span>
+            <span>偏高</span>
           </div>
         </div>
 
-        <!-- String Reference -->
-        <div class="mb-6 p-6 rounded-xl" style="background-color: var(--color-card); border: 1px solid var(--color-border)">
-          <h3 class="text-sm font-medium mb-4" style="color: var(--color-muted-foreground)">
-            标准音参考
-          </h3>
-          <div class="gap-3 grid grid-cols-6">
-            <button
-              v-for="string in currentStrings"
-              :key="string.note"
-              class="p-4 border-2 rounded-lg transition-all"
-              :style="detectedNote === string.note
-                ? { backgroundColor: 'var(--color-accent)', borderColor: 'var(--color-accent)', color: 'var(--color-accent-foreground)' }
-                : { backgroundColor: 'var(--color-muted)', borderColor: 'transparent' }"
-              @click="playReference(string.frequency)"
-            >
-              <div class="text-lg font-bold">
-                {{ string.note }}
-              </div>
-              <div class="text-xs mt-1" style="color: var(--color-muted-foreground)">
-                {{ string.frequency }}Hz
-              </div>
-            </button>
+        <!-- Cents Display -->
+        <div class="text-center">
+          <div class="text-3xl font-semibold" :class="centsColor">
+            {{ cents !== null ? (cents > 0 ? '+' : '') + cents.toFixed(0) : '—' }}
+            <span class="text-lg ml-1" style="color: var(--color-muted-foreground)">cents</span>
           </div>
         </div>
-
-        <!-- Start/Stop Button -->
-        <button
-          class="text-lg font-semibold py-4 rounded-xl w-full transition-all hover:opacity-90"
-          :style="isListening
-            ? { backgroundColor: 'var(--color-destructive)', color: '#ffffff' }
-            : { backgroundColor: 'var(--color-primary-foreground)', color: 'var(--color-primary)' }"
-          @click="toggleTuner"
-        >
-          {{ isListening ? '停止调音' : '开始调音' }}
-        </button>
       </div>
-    </main>
 
-    <!-- Settings Modal -->
-    <div
-      v-if="showSettings"
-      class="p-4 flex items-center inset-0 justify-center fixed z-50"
-      style="background-color: rgba(0, 0, 0, 0.5)"
-      @click="showSettings = false"
-    >
-      <div
-        class="p-6 rounded-2xl max-w-md w-full"
-        style="background-color: var(--color-card); border: 1px solid var(--color-border)"
-        @click.stop
+      <!-- String Reference -->
+      <div class="mb-6 p-5 rounded-xl" style="background-color: var(--color-card); border: 1px solid var(--color-border)">
+        <h3 class="text-sm font-medium mb-3" style="color: var(--color-muted-foreground)">
+          标准音参考
+        </h3>
+        <div class="gap-2.5 grid grid-cols-6">
+          <button
+            v-for="string in currentStrings"
+            :key="string.note"
+            class="p-3 border-2 rounded-lg transition-all"
+            :style="detectedNote === string.note
+              ? { backgroundColor: 'var(--color-accent)', borderColor: 'var(--color-accent)', color: 'var(--color-accent-foreground)' }
+              : { backgroundColor: 'var(--color-muted)', borderColor: 'transparent' }"
+            @click="playReference(string.frequency)"
+          >
+            <div class="text-sm font-bold">
+              {{ string.note }}
+            </div>
+            <div class="text-xs mt-0.5" style="color: var(--color-muted-foreground)">
+              {{ string.frequency }}Hz
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Start/Stop Button -->
+      <button
+        class="text-lg font-semibold py-4 rounded-xl w-full transition-all hover:opacity-90"
+        :style="isListening
+          ? { backgroundColor: 'var(--color-destructive)', color: '#ffffff' }
+          : { backgroundColor: 'var(--color-primary-foreground)', color: 'var(--color-primary)' }"
+        @click="toggleTuner"
       >
-        <h2 class="text-xl font-semibold mb-4">
-          设置
-        </h2>
-        <div class="space-y-4">
-          <div>
-            <label class="text-sm font-medium mb-2 block">灵敏度</label>
-            <input
-              v-model="sensitivity"
-              type="range"
-              min="0.1"
-              max="1"
-              step="0.1"
-              class="w-full"
-            >
-            <div class="text-xs mt-1" style="color: var(--color-muted-foreground)">
-              当前: {{ sensitivity }}
-            </div>
-          </div>
-          <div>
-            <label class="text-sm font-medium mb-2 block">标准音高 (A4)</label>
-            <input
-              v-model="a4Frequency"
-              type="number"
-              min="430"
-              max="450"
-              class="px-3 py-2 rounded-lg w-full"
-              style="background-color: var(--color-muted); border: 1px solid var(--color-border)"
-            >
-            <div class="text-xs mt-1" style="color: var(--color-muted-foreground)">
-              通常为 440 Hz
-            </div>
+        {{ isListening ? '停止调音' : '开始调音' }}
+      </button>
+    </div>
+  </main>
+
+  <!-- Settings Modal -->
+  <div
+    v-if="showSettings"
+    class="p-4 flex items-center inset-0 justify-center fixed z-50"
+    style="background-color: rgba(0, 0, 0, 0.5)"
+    @click="showSettings = false"
+  >
+    <div
+      class="p-6 rounded-2xl max-w-md w-full"
+      style="background-color: var(--color-card); border: 1px solid var(--color-border)"
+      @click.stop
+    >
+      <h2 class="text-xl font-semibold mb-4">
+        设置
+      </h2>
+      <div class="space-y-4">
+        <div>
+          <label class="text-sm font-medium mb-2 block">灵敏度</label>
+          <input
+            v-model="sensitivity"
+            type="range"
+            min="0.1"
+            max="1"
+            step="0.1"
+            class="w-full"
+          >
+          <div class="text-xs mt-1" style="color: var(--color-muted-foreground)">
+            当前: {{ sensitivity }}
           </div>
         </div>
-        <button
-          class="font-medium mt-6 py-3 rounded-lg w-full transition-opacity hover:opacity-90"
-          style="background-color: var(--color-primary-foreground); color: var(--color-primary)"
-          @click="showSettings = false"
-        >
-          完成
-        </button>
+        <div>
+          <label class="text-sm font-medium mb-2 block">标准音高 (A4)</label>
+          <input
+            v-model="a4Frequency"
+            type="number"
+            min="430"
+            max="450"
+            class="px-3 py-2 rounded-lg w-full"
+            style="background-color: var(--color-muted); border: 1px solid var(--color-border)"
+          >
+          <div class="text-xs mt-1" style="color: var(--color-muted-foreground)">
+            通常为 440 Hz
+          </div>
+        </div>
       </div>
+      <button
+        class="font-medium mt-6 py-3 rounded-lg w-full transition-opacity hover:opacity-90"
+        style="background-color: var(--color-primary-foreground); color: var(--color-primary)"
+        @click="showSettings = false"
+      >
+        完成
+      </button>
     </div>
   </div>
 </template>
