@@ -3,7 +3,7 @@ import { isDark, toggleDark } from '../composables'
 </script>
 
 <template>
-  <nav text-xl mt-6 inline-flex gap-2>
+  <nav text-xl mt-6 flex gap-2 justify-center>
     <button
       icon-btn
       :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
