@@ -415,8 +415,8 @@ onUnmounted(() => {
       <!-- Instrument Title and Settings Button -->
       <div class="mb-6 flex items-center justify-between">
         <div class="flex gap-2 items-center">
-          <img src="/guitar.svg" alt="guitar" class="h-8 w-8">
-          <h2 class="text-2xl font-semibold" style="color: var(--color-foreground)">
+          <img src="/guitar.svg" alt="guitar" class="h-7 w-7">
+          <h2 class="text-lg font-semibold" style="color: var(--color-foreground)">
             原声吉他
           </h2>
         </div>

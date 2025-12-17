@@ -7,7 +7,7 @@ import { isDark, toggleDark } from '../composables'
     <div class="mx-auto flex max-w-4xl items-center justify-between">
       <div class="flex gap-3 items-center">
         <img src="/logo.svg" alt="logo" class="h-7 w-7">
-        <h1 class="text-xl font-semibold">
+        <h1 class="text-2xl text-transparent font-bold from-cyan-500 to-indigo-600 via-blue-500 bg-gradient-to-r bg-clip-text">
           调音器
         </h1>
       </div>
