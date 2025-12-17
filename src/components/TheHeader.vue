@@ -17,6 +17,7 @@ import { isDark, toggleDark } from '../composables'
       <div class="flex gap-3 items-center">
         <button
           icon-btn
+          class="cursor-pointer transition-all hover:scale-110"
           :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
           @click="toggleDark()"
         >
@@ -26,6 +27,7 @@ import { isDark, toggleDark } from '../composables'
         <a
           i-carbon-logo-github
           icon-btn
+          class="cursor-pointer transition-all hover:scale-110"
           rel="noreferrer"
           href="https://github.com/antfu-collective/vitesse-lite"
           target="_blank"
