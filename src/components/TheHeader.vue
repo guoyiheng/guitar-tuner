@@ -27,7 +27,7 @@ import { isDark, toggleDark } from '../composables'
           icon-btn
           class="cursor-pointer transition-all hover:scale-110"
           rel="noreferrer"
-          href="https://github.com/antfu-collective/vitesse-lite"
+          href="https://github.com/guoyiheng/guitar-tuner"
           target="_blank"
           title="GitHub"
         />

@@ -6,6 +6,8 @@
 [![Vite](https://img.shields.io/badge/Vite-6-646cff)](https://vitejs.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6)](https://www.typescriptlang.org/)
 
+参考：https://guitar-tuner.org/zh/acoustic-guitar-tuning
+
 ## ✨ 特性
 
 - 🎯 **实时音高检测** - 使用自相关算法精准检测吉他音高
@@ -19,6 +21,7 @@
 ## 🎮 功能
 
 ### 核心功能
+
 - 实时音频捕获和频率分析
 - 自动检测最接近的吉他弦
 - 显示音高偏差（cents）
@@ -26,6 +29,7 @@
 - 标准六弦调音参考（E A D G B E）
 
 ### 技术亮点
+
 - 基于 Web Audio API 的音频处理
 - 自相关算法进行音高检测
 - Vue 3 Composition API
@@ -110,11 +114,13 @@ src/
 ## 📝 浏览器兼容性
 
 需要支持以下 API 的现代浏览器：
+
 - Web Audio API
 - MediaDevices API (getUserMedia)
 - ES2020+
 
 推荐使用：
+
 - Chrome 90+
 - Firefox 88+
 - Safari 14+
@@ -132,7 +138,6 @@ MIT License
 ---
 
 Made with ❤️ and Vue 3
-
 
 ## Pre-packed
 

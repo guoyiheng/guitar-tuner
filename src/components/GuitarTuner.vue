@@ -1,6 +1,6 @@
 <script setup>
 import * as Tone from 'tone'
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { TUNING_PRESETS } from '../composables/usePitchDetection'
 
 const isListening = ref(false)
@@ -15,6 +15,7 @@ const tuningMode = ref('manual') // 'manual' 或 'auto'
 const selectedNote = ref(null) // 当前选中的参考音
 const autoDetectString = ref(true) // 自动检测琴弦
 const manualStringIndex = ref(0) // 手动选择的琴弦索引 (0-5)
+const animationComplete = ref(false) // 琴头动画是否完成
 
 let audioContext = null
 let analyser = null
@@ -466,6 +467,13 @@ async function playReferenceTone(noteName) {
   pluckSynth.triggerAttackRelease(noteName, '2n')
 }
 
+onMounted(() => {
+  // 等待琴头动画完成（2.5秒）后显示按钮
+  setTimeout(() => {
+    animationComplete.value = true
+  }, 2500)
+})
+
 onUnmounted(() => {
   if (isListening.value) {
     stopListening()
@@ -638,8 +646,9 @@ watch(autoDetectString, (newValue) => {
             <!-- 左侧旋钮 (6弦E, 5弦A, 4弦D) -->
             <button
               v-for="(string, index) in currentStrings.slice(0, 3)"
+              v-show="animationComplete"
               :key="`${string.name}${string.octave}`"
-              class="group text-xs rounded-full flex h-10 w-10 cursor-pointer shadow-md transition-all items-center justify-center absolute hover:scale-110"
+              class="group button-fade-in text-xs rounded-full flex h-10 w-10 cursor-pointer shadow-md transition-all items-center justify-center absolute hover:scale-110"
               :style="{
                 top: `${115 + index * 72}px`,
                 left: '15px',
@@ -662,8 +671,9 @@ watch(autoDetectString, (newValue) => {
             <!-- 右侧旋钮 (3弦G, 2弦B, 1弦E) -->
             <button
               v-for="(string, index) in currentStrings.slice(3, 6)"
+              v-show="animationComplete"
               :key="`${string.name}${string.octave}`"
-              class="group text-xs rounded-full flex h-10 w-10 cursor-pointer shadow-md transition-all items-center justify-center absolute hover:scale-110"
+              class="group button-fade-in text-xs rounded-full flex h-10 w-10 cursor-pointer shadow-md transition-all items-center justify-center absolute hover:scale-110"
               :style="{
                 top: `${115 + index * 72}px`,
                 right: '15px',
@@ -768,6 +778,21 @@ watch(autoDetectString, (newValue) => {
 </template>
 
 <style scoped>
+@keyframes buttonFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+.button-fade-in {
+  animation: buttonFadeIn 0.5s ease-out forwards;
+}
+
 @keyframes guitarHeadstockEntry {
   0% {
     transform: translate(-50%, -50%) rotate(0deg) scale(1);
