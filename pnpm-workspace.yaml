@@ -27,6 +27,7 @@ catalogs:
     vue-tsc: ^2.2.10
   frontend:
     '@vueuse/core': ^13.3.0
+    tone: ^15.1.22
     vue: ^3.5.16
     vue-router: ^4.5.1
 onlyBuiltDependencies:

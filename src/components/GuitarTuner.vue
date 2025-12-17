@@ -1,15 +1,20 @@
 <script setup>
-import { computed, onUnmounted, ref } from 'vue'
+import * as Tone from 'tone'
+import { computed, onUnmounted, ref, watch } from 'vue'
+import { TUNING_PRESETS } from '../composables/usePitchDetection'
 
 const isListening = ref(false)
 const detectedNote = ref(null)
 const frequency = ref(null)
 const cents = ref(null)
-const selectedMode = ref('standard')
+const selectedMode = ref(0) // 调音模式索引 (0: 标准, 1: Drop D, 2: 降半音, 3: Open G)
 const showSettings = ref(false)
 const sensitivity = ref(0.5)
 const a4Frequency = ref(440)
 const tuningMode = ref('manual') // 'manual' 或 'auto'
+const selectedNote = ref(null) // 当前选中的参考音
+const autoDetectString = ref(true) // 自动检测琴弦
+const manualStringIndex = ref(0) // 手动选择的琴弦索引 (0-5)
 
 let audioContext = null
 let analyser = null
@@ -37,49 +42,45 @@ const displayFrequency = ref(null)
 const displayCents = ref(null)
 const errorMessage = ref(null)
 
-const tuningModes = [
-  { id: 'standard', name: '标准调音' },
-  { id: 'dropD', name: 'Drop D' },
-  { id: 'halfStep', name: '降半音' },
-  { id: 'openG', name: 'Open G' },
-]
+// 从 TUNING_PRESETS 生成 tuningModes
+const tuningModes = TUNING_PRESETS.map((preset, index) => ({
+  id: index,
+  name: preset.name,
+}))
 
-const tuningPresets = {
-  standard: [
-    { note: 'E2', frequency: 82.41 },
-    { note: 'A2', frequency: 110.00 },
-    { note: 'D3', frequency: 146.83 },
-    { note: 'G3', frequency: 196.00 },
-    { note: 'B3', frequency: 246.94 },
-    { note: 'E4', frequency: 329.63 },
-  ],
-  dropD: [
-    { note: 'D2', frequency: 73.42 },
-    { note: 'A2', frequency: 110.00 },
-    { note: 'D3', frequency: 146.83 },
-    { note: 'G3', frequency: 196.00 },
-    { note: 'B3', frequency: 246.94 },
-    { note: 'E4', frequency: 329.63 },
-  ],
-  halfStep: [
-    { note: 'E♭2', frequency: 77.78 },
-    { note: 'A♭2', frequency: 103.83 },
-    { note: 'D♭3', frequency: 138.59 },
-    { note: 'G♭3', frequency: 185.00 },
-    { note: 'B♭3', frequency: 233.08 },
-    { note: 'E♭4', frequency: 311.13 },
-  ],
-  openG: [
-    { note: 'D2', frequency: 73.42 },
-    { note: 'G2', frequency: 98.00 },
-    { note: 'D3', frequency: 146.83 },
-    { note: 'G3', frequency: 196.00 },
-    { note: 'B3', frequency: 246.94 },
-    { note: 'D4', frequency: 293.66 },
-  ],
-}
+const currentStrings = computed(() => TUNING_PRESETS[selectedMode.value].strings)
 
-const currentStrings = computed(() => tuningPresets[selectedMode.value])
+// 当前目标琴弦
+const targetString = computed(() => {
+  if (tuningMode.value !== 'auto') {
+    return null
+  }
+
+  if (autoDetectString.value) {
+    // 自动检测：根据当前频率找到最接近的琴弦
+    if (!frequency.value) {
+      return null
+    }
+
+    const strings = currentStrings.value
+    let closestString = strings[0]
+    let minDiff = Math.abs(frequency.value - strings[0].frequency)
+
+    for (const string of strings) {
+      const diff = Math.abs(frequency.value - string.frequency)
+      if (diff < minDiff) {
+        minDiff = diff
+        closestString = string
+      }
+    }
+
+    return closestString
+  }
+  else {
+    // 手动选择
+    return currentStrings.value[manualStringIndex.value]
+  }
+})
 
 const noteColor = computed(() => {
   if (!cents.value)
@@ -383,27 +384,99 @@ function stopListening() {
   }
 }
 
-function playReference(freq) {
-  const context = new (window.AudioContext || window.webkitAudioContext)()
-  const oscillator = context.createOscillator()
-  const gainNode = context.createGain()
+// 音频缓存
+const audioCache = new Map()
 
-  oscillator.connect(gainNode)
-  gainNode.connect(context.destination)
+// 创建 Tone.js 合成器（懒加载）
+let synth = null
+function getSynth() {
+  if (!synth) {
+    // 使用 PluckSynth 模拟拨弦吉他音色
+    synth = new Tone.PluckSynth({
+      attackNoise: 1,
+      dampening: 4000,
+      resonance: 0.9,
+    }).toDestination()
+  }
+  return synth
+}
 
-  oscillator.frequency.value = freq
-  oscillator.type = 'sine'
+async function playReference(freq) {
+  // 从当前调弦方案中找到对应的弦信息
+  const stringInfo = currentStrings.value.find(s => Math.abs(s.frequency - freq) < 0.01)
+  if (!stringInfo) {
+    console.warn('Unknown frequency:', freq)
+    return
+  }
 
-  gainNode.gain.setValueAtTime(0.3, context.currentTime)
-  gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 1)
+  // 构建音符名称 (例如: "E2", "D3")
+  // usePitchDetection 中的结构已经包含 name 和 octave
+  const noteName = `${stringInfo.name}${stringInfo.octave}`
 
-  oscillator.start(context.currentTime)
-  oscillator.stop(context.currentTime + 1)
+  // 设置选中状态
+  selectedNote.value = noteName
+
+  // 如果在自动调音模式，自动切换到手动选择琴弦模式
+  if (tuningMode.value === 'auto') {
+    autoDetectString.value = false
+    const stringIndex = currentStrings.value.findIndex(s => s.frequency === freq)
+    if (stringIndex !== -1) {
+      manualStringIndex.value = stringIndex
+    }
+  }
+
+  try {
+    // 检查缓存
+    if (!audioCache.has(noteName)) {
+      // 尝试加载音频文件
+      const response = await fetch(`/sounds/${noteName}.mp3`)
+      if (!response.ok) {
+        throw new Error('Audio file not found')
+      }
+      const arrayBuffer = await response.arrayBuffer()
+      audioCache.set(noteName, arrayBuffer)
+    }
+
+    // 播放音频
+    const context = new (window.AudioContext || window.webkitAudioContext)()
+    const audioBuffer = await context.decodeAudioData(audioCache.get(noteName).slice(0))
+    const source = context.createBufferSource()
+    const gainNode = context.createGain()
+
+    source.buffer = audioBuffer
+    source.connect(gainNode)
+    gainNode.connect(context.destination)
+
+    gainNode.gain.value = 0.7
+    source.start(0)
+  }
+  catch {
+    // 降级到 Tone.js 合成音频
+    await playReferenceTone(noteName)
+  }
+}
+
+// 降级方案：使用 Tone.js PluckSynth
+async function playReferenceTone(noteName) {
+  // 确保音频上下文已启动
+  await Tone.start()
+
+  const pluckSynth = getSynth()
+  // 播放音符，持续 2 秒
+  pluckSynth.triggerAttackRelease(noteName, '2n')
 }
 
 onUnmounted(() => {
   if (isListening.value) {
     stopListening()
+  }
+})
+
+// 监听琴弦检测模式切换
+watch(autoDetectString, (newValue) => {
+  if (newValue) {
+    // 切换到自动模式时，清除手动选中的参考音
+    selectedNote.value = null
   }
 })
 </script>
@@ -444,12 +517,16 @@ onUnmounted(() => {
               <span class="text-xs" style="color: var(--color-muted-foreground)">{{ tuningMode === 'manual' ? '点击标准音参考按钮' : '使用麦克风检测音高' }}</span>
             </div>
             <button
-              class="rounded-full inline-flex h-8 w-14 cursor-pointer transition-colors items-center relative"
-              :style="{ backgroundColor: tuningMode === 'auto' ? 'var(--color-accent)' : 'var(--color-border)' }"
+              class="rounded-full inline-flex h-8 w-14 cursor-pointer shadow-inner transition-all items-center relative"
+              :style="{
+                backgroundColor: tuningMode === 'auto' ? 'var(--color-primary-foreground)' : 'rgba(100, 100, 100, 0.3)',
+                border: '2px solid',
+                borderColor: tuningMode === 'auto' ? 'var(--color-primary-foreground)' : 'rgba(150, 150, 150, 0.4)',
+              }"
               @click="toggleTuningMode"
             >
               <span
-                class="rounded-full h-6 w-6 inline-block transform transition-transform"
+                class="rounded-full h-6 w-6 inline-block shadow-md transform transition-all"
                 :class="tuningMode === 'auto' ? 'translate-x-7' : 'translate-x-1'"
                 style="background-color: #ffffff"
               />
@@ -496,13 +573,48 @@ onUnmounted(() => {
                 <span class="text-lg ml-1" style="color: var(--color-muted-foreground)">cents</span>
               </div>
             </div>
+
+            <!-- 琴弦检测模式 -->
+            <div class="mt-6 p-4 rounded-xl" style="background-color: var(--color-muted)">
+              <div class="mb-3 flex items-center justify-between">
+                <div class="flex flex-col">
+                  <span class="text-sm font-medium" style="color: var(--color-foreground)">{{ autoDetectString ? '自动检测琴弦' : '手动选择琴弦' }}</span>
+                  <span class="text-xs" style="color: var(--color-muted-foreground)">{{ autoDetectString ? '根据音高自动识别' : '手动指定调音琴弦' }}</span>
+                </div>
+                <button
+                  class="rounded-full inline-flex h-8 w-14 cursor-pointer shadow-inner transition-all items-center relative"
+                  :style="{
+                    backgroundColor: autoDetectString ? 'var(--color-primary-foreground)' : 'rgba(100, 100, 100, 0.3)',
+                    border: '2px solid',
+                    borderColor: autoDetectString ? 'var(--color-primary-foreground)' : 'rgba(150, 150, 150, 0.4)',
+                  }"
+                  @click="autoDetectString = !autoDetectString"
+                >
+                  <span
+                    class="rounded-full h-6 w-6 inline-block shadow-md transform transition-all"
+                    :class="autoDetectString ? 'translate-x-7' : 'translate-x-1'"
+                    style="background-color: #ffffff"
+                  />
+                </button>
+              </div>
+
+              <!-- 手动模式提示 -->
+              <div v-if="!autoDetectString" class="text-sm mt-3 text-center" style="color: var(--color-muted-foreground)">
+                点击右侧参考音按钮选择琴弦
+              </div>
+
+              <!-- 当前目标琴弦显示 -->
+              <div v-if="targetString" class="text-sm mt-3 text-center" style="color: var(--color-muted-foreground)">
+                目标: {{ 6 - currentStrings.indexOf(targetString) }}弦 {{ targetString.name }}{{ targetString.octave }} ({{ targetString.frequency }}Hz)
+              </div>
+            </div>
           </template>
 
           <!-- 手动调音模式下显示提示信息 -->
           <div v-else class="py-12 text-center">
             <img src="/guitar.svg" alt="guitar" class="mx-auto mb-4 h-16 w-16">
             <p class="text-lg" style="color: var(--color-muted-foreground)">
-              点击右侧标准音参考按钮<br>使用耳朵进行调音
+              点击右侧标准音按钮<br>使用耳朵进行调音
             </p>
           </div>
         </div>
@@ -526,19 +638,19 @@ onUnmounted(() => {
             <!-- 左侧旋钮 (6弦E, 5弦A, 4弦D) -->
             <button
               v-for="(string, index) in currentStrings.slice(0, 3)"
-              :key="string.note"
+              :key="`${string.name}${string.octave}`"
               class="group text-xs rounded-full flex h-10 w-10 cursor-pointer shadow-md transition-all items-center justify-center absolute hover:scale-110"
               :style="{
                 top: `${115 + index * 72}px`,
                 left: '15px',
-                backgroundColor: detectedNote === string.note ? 'var(--color-accent)' : 'var(--color-muted)',
-                color: detectedNote === string.note ? 'var(--color-accent-foreground)' : 'var(--color-foreground)',
+                backgroundColor: (tuningMode === 'auto' && autoDetectString && targetString?.name === string.name) || selectedNote === `${string.name}${string.octave}` ? 'var(--color-primary-foreground)' : 'var(--color-muted)',
+                color: (tuningMode === 'auto' && autoDetectString && targetString?.name === string.name) || selectedNote === `${string.name}${string.octave}` ? 'var(--color-primary)' : 'var(--color-foreground)',
                 transform: 'translateY(-50%)',
               }"
               @click="playReference(string.frequency)"
             >
               <div class="font-bold text-center">
-                {{ string.note }}
+                {{ string.name }}{{ string.octave }}
               </div>
               <!-- Popup tooltip -->
               <div class="text-[10px] ml-2 px-2 py-1 rounded opacity-0 invisible pointer-events-none whitespace-nowrap shadow-lg transition-all left-full top-1/2 absolute group-hover:opacity-100 group-hover:visible -translate-y-1/2" style="background-color: var(--color-foreground); color: var(--color-background)">
@@ -550,19 +662,19 @@ onUnmounted(() => {
             <!-- 右侧旋钮 (3弦G, 2弦B, 1弦E) -->
             <button
               v-for="(string, index) in currentStrings.slice(3, 6)"
-              :key="string.note"
+              :key="`${string.name}${string.octave}`"
               class="group text-xs rounded-full flex h-10 w-10 cursor-pointer shadow-md transition-all items-center justify-center absolute hover:scale-110"
               :style="{
                 top: `${115 + index * 72}px`,
                 right: '15px',
-                backgroundColor: detectedNote === string.note ? 'var(--color-accent)' : 'var(--color-muted)',
-                color: detectedNote === string.note ? 'var(--color-accent-foreground)' : 'var(--color-foreground)',
+                backgroundColor: (tuningMode === 'auto' && autoDetectString && targetString?.name === string.name) || selectedNote === `${string.name}${string.octave}` ? 'var(--color-primary-foreground)' : 'var(--color-muted)',
+                color: (tuningMode === 'auto' && autoDetectString && targetString?.name === string.name) || selectedNote === `${string.name}${string.octave}` ? 'var(--color-primary)' : 'var(--color-foreground)',
                 transform: 'translateY(-50%)',
               }"
               @click="playReference(string.frequency)"
             >
               <div class="font-bold text-center">
-                {{ string.note }}
+                {{ string.name }}{{ string.octave }}
               </div>
               <!-- Popup tooltip -->
               <div class="text-[10px] mr-2 px-2 py-1 rounded opacity-0 invisible pointer-events-none whitespace-nowrap shadow-lg transition-all right-full top-1/2 absolute group-hover:opacity-100 group-hover:visible -translate-y-1/2" style="background-color: var(--color-foreground); color: var(--color-background)">
@@ -651,13 +763,6 @@ onUnmounted(() => {
           </div>
         </div>
       </div>
-      <button
-        class="font-medium mt-6 py-3 rounded-lg w-full cursor-pointer transition-all hover:shadow-lg hover:scale-105"
-        style="background-color: var(--color-primary-foreground); color: var(--color-primary)"
-        @click="showSettings = false"
-      >
-        完成
-      </button>
     </div>
   </div>
 </template>
