@@ -412,8 +412,14 @@ onUnmounted(() => {
   <!-- Main Content -->
   <main class="p-6 flex flex-1 items-center justify-center">
     <div class="max-w-2xl w-full">
-      <!-- Settings Button -->
-      <div class="mb-6 flex justify-end">
+      <!-- Instrument Title and Settings Button -->
+      <div class="mb-6 flex items-center justify-between">
+        <div class="flex gap-2 items-center">
+          <img src="/guitar.svg" alt="guitar" class="h-8 w-8">
+          <h2 class="text-2xl font-semibold" style="color: var(--color-foreground)">
+            原声吉他
+          </h2>
+        </div>
         <button
           class="p-2 rounded-lg cursor-pointer transition-all hover:shadow-lg hover:scale-105"
           style="background-color: var(--color-muted)"
@@ -494,9 +500,7 @@ onUnmounted(() => {
 
           <!-- 手动调音模式下显示提示信息 -->
           <div v-else class="py-12 text-center">
-            <div class="text-4xl mb-4">
-              🎸
-            </div>
+            <img src="/guitar.svg" alt="guitar" class="mx-auto mb-4 h-16 w-16">
             <p class="text-lg" style="color: var(--color-muted-foreground)">
               点击右侧标准音参考按钮<br>使用耳朵进行调音
             </p>

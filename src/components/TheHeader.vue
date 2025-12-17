@@ -6,11 +6,9 @@ import { isDark, toggleDark } from '../composables'
   <header class="px-6 py-3" style="border-bottom: 1px solid var(--color-border)">
     <div class="mx-auto flex max-w-4xl items-center justify-between">
       <div class="flex gap-3 items-center">
-        <svg class="h-7 w-7" style="color: var(--color-primary-foreground)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-        </svg>
+        <img src="/logo.svg" alt="logo" class="h-7 w-7">
         <h1 class="text-xl font-semibold">
-          吉他调音器
+          调音器
         </h1>
       </div>
 
