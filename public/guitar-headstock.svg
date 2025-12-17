@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" fill="none">
+  <!-- 琴头主体 -->
+  <path d="M 80 20 Q 60 30 60 50 L 60 380 Q 60 390 70 390 L 130 390 Q 140 390 140 380 L 140 50 Q 140 30 120 20 Z" 
+        fill="currentColor" opacity="0.1" stroke="currentColor" stroke-width="2"/>
+  
+  <!-- 琴头顶部装饰 -->
+  <ellipse cx="100" cy="25" rx="25" ry="10" fill="currentColor" opacity="0.05"/>
+  
+  <!-- 品丝 -->
+  <line x1="60" y1="100" x2="140" y2="100" stroke="currentColor" opacity="0.2" stroke-width="1"/>
+  <line x1="60" y1="150" x2="140" y2="150" stroke="currentColor" opacity="0.2" stroke-width="1"/>
+  <line x1="60" y1="200" x2="140" y2="200" stroke="currentColor" opacity="0.2" stroke-width="1"/>
+  <line x1="60" y1="250" x2="140" y2="250" stroke="currentColor" opacity="0.2" stroke-width="1"/>
+  <line x1="60" y1="300" x2="140" y2="300" stroke="currentColor" opacity="0.2" stroke-width="1"/>
+  <line x1="60" y1="350" x2="140" y2="350" stroke="currentColor" opacity="0.2" stroke-width="1"/>
+  
+  <!-- 左侧旋钮位置标记 (第6、5、4弦) -->
+  <circle cx="40" cy="80" r="8" fill="currentColor" opacity="0.3" data-string="6"/>
+  <circle cx="40" cy="140" r="8" fill="currentColor" opacity="0.3" data-string="5"/>
+  <circle cx="40" cy="200" r="8" fill="currentColor" opacity="0.3" data-string="4"/>
+  
+  <!-- 右侧旋钮位置标记 (第3、2、1弦) -->
+  <circle cx="160" cy="80" r="8" fill="currentColor" opacity="0.3" data-string="3"/>
+  <circle cx="160" cy="140" r="8" fill="currentColor" opacity="0.3" data-string="2"/>
+  <circle cx="160" cy="200" r="8" fill="currentColor" opacity="0.3" data-string="1"/>
+</svg>

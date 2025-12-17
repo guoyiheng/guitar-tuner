@@ -509,24 +509,65 @@ onUnmounted(() => {
 
         <!-- String Reference -->
         <div class="p-5 rounded-xl" style="background-color: var(--color-card); border: 1px solid var(--color-border)">
-          <h3 class="text-sm font-medium mb-3" style="color: var(--color-muted-foreground)">
-            标准音参考
+          <h3 class="text-sm font-medium mb-4" style="color: var(--color-muted-foreground)">
+            <!-- 标准音参考 -->
           </h3>
-          <div class="flex flex-col gap-2.5">
+
+          <!-- 吉他琴头模型 -->
+          <div class="mx-auto relative overflow-hidden" style="width: 300px; height: 450px;">
+            <!-- 琴头SVG背景 (使用外部文件) -->
+            <img
+              src="/acoustic-guitar.svg"
+              alt="Guitar Headstock"
+              class="guitar-headstock"
+            >
+
+            <!-- 按钮定位在旋钮位置 -->
+            <!-- 左侧旋钮 (6弦E, 5弦A, 4弦D) -->
             <button
-              v-for="string in currentStrings"
+              v-for="(string, index) in currentStrings.slice(0, 3)"
               :key="string.note"
-              class="p-3 border-2 rounded-lg cursor-pointer transition-all hover:shadow-lg hover:scale-105"
-              :style="detectedNote === string.note
-                ? { backgroundColor: 'var(--color-accent)', borderColor: 'var(--color-accent)', color: 'var(--color-accent-foreground)' }
-                : { backgroundColor: 'var(--color-muted)', borderColor: 'transparent' }"
+              class="group text-xs rounded-full flex h-10 w-10 cursor-pointer shadow-md transition-all items-center justify-center absolute hover:scale-110"
+              :style="{
+                top: `${115 + index * 72}px`,
+                left: '15px',
+                backgroundColor: detectedNote === string.note ? 'var(--color-accent)' : 'var(--color-muted)',
+                color: detectedNote === string.note ? 'var(--color-accent-foreground)' : 'var(--color-foreground)',
+                transform: 'translateY(-50%)',
+              }"
               @click="playReference(string.frequency)"
             >
-              <div class="text-sm font-bold">
+              <div class="font-bold text-center">
                 {{ string.note }}
               </div>
-              <div class="text-xs mt-0.5" style="color: var(--color-muted-foreground)">
+              <!-- Popup tooltip -->
+              <div class="text-[10px] ml-2 px-2 py-1 rounded opacity-0 invisible pointer-events-none whitespace-nowrap shadow-lg transition-all left-full top-1/2 absolute group-hover:opacity-100 group-hover:visible -translate-y-1/2" style="background-color: var(--color-foreground); color: var(--color-background)">
                 {{ string.frequency }}Hz
+                <div class="border-4 border-transparent h-0 w-0 right-full top-1/2 absolute -translate-y-1/2" style="border-right-color: var(--color-foreground)" />
+              </div>
+            </button>
+
+            <!-- 右侧旋钮 (3弦G, 2弦B, 1弦E) -->
+            <button
+              v-for="(string, index) in currentStrings.slice(3, 6)"
+              :key="string.note"
+              class="group text-xs rounded-full flex h-10 w-10 cursor-pointer shadow-md transition-all items-center justify-center absolute hover:scale-110"
+              :style="{
+                top: `${115 + index * 72}px`,
+                right: '15px',
+                backgroundColor: detectedNote === string.note ? 'var(--color-accent)' : 'var(--color-muted)',
+                color: detectedNote === string.note ? 'var(--color-accent-foreground)' : 'var(--color-foreground)',
+                transform: 'translateY(-50%)',
+              }"
+              @click="playReference(string.frequency)"
+            >
+              <div class="font-bold text-center">
+                {{ string.note }}
+              </div>
+              <!-- Popup tooltip -->
+              <div class="text-[10px] mr-2 px-2 py-1 rounded opacity-0 invisible pointer-events-none whitespace-nowrap shadow-lg transition-all right-full top-1/2 absolute group-hover:opacity-100 group-hover:visible -translate-y-1/2" style="background-color: var(--color-foreground); color: var(--color-background)">
+                {{ string.frequency }}Hz
+                <div class="border-4 border-transparent h-0 w-0 left-full top-1/2 absolute -translate-y-1/2" style="border-left-color: var(--color-foreground)" />
               </div>
             </button>
           </div>
@@ -620,3 +661,33 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes guitarHeadstockEntry {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    opacity: 0.5;
+  }
+  25% {
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(-90deg) scale(2);
+  }
+  100% {
+    /* 逆时针旋转90度，放大到恰好显示琴头部分，并居中 */
+    transform: translate(-50%, 220%) rotate(-90deg) scale(8);
+    opacity: 1;
+  }
+}
+
+.guitar-headstock {
+  position: absolute;
+  width: 100%;
+  height: auto;
+  top: 50%;
+  left: 50%;
+  animation: guitarHeadstockEntry 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+</style>
