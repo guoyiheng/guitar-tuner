@@ -599,12 +599,12 @@ watch(autoDetectString, (newValue) => {
               </div>
 
               <!-- 手动模式提示 -->
-              <div v-if="!autoDetectString" class="text-sm mt-3 text-center" style="color: var(--color-muted-foreground)">
+              <div v-if="!autoDetectString" class="text-xs mt-6 text-center" style="color: var(--color-muted-foreground)">
                 点击右侧参考音按钮选择琴弦
               </div>
 
               <!-- 当前目标琴弦显示 -->
-              <div v-if="targetString" class="text-sm mt-3 text-center" style="color: var(--color-muted-foreground)">
+              <div v-if="targetString" class="text-xs mt-3 text-center" style="color: var(--color-muted-foreground)">
                 目标: {{ 6 - currentStrings.indexOf(targetString) }}弦 {{ targetString.name }}{{ targetString.octave }} ({{ targetString.frequency }}Hz)
               </div>
             </div>
